@@ -1,4 +1,5 @@
-﻿import { createClient } from '@supabase/supabase-js';
+﻿import http from 'http';
+import { createClient } from '@supabase/supabase-js';
 import OpenAI from 'openai';
 import axios from 'axios';
 import dotenv from 'dotenv';
@@ -200,3 +201,16 @@ async function startListening() {
 }
 
 startListening();
+
+// --- RENDER İÇİN SAHTE SUNUCU (KAPATMA, BU GEREKLİ) ---
+const server = http.createServer((req, res) => {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/plain');
+    res.end('AI Agent Calisiyor! (Render Port Dinleme Modu)\n');
+});
+
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Render Web Servisi Başlatıldı! Port: ${PORT}`);
+});
