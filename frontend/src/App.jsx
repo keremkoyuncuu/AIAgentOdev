@@ -5,9 +5,10 @@ import { createClient } from '@supabase/supabase-js'
 
 // ⚙️ AYARLAR 
 
-const supabaseUrl = 'https://pfpptcpkuwnranhctoet.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmcHB0Y3BrdXducmFuaGN0b2V0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NjM2NzEsImV4cCI6MjA4MjQzOTY3MX0.Ab9KGgpnKhgQNskjGOsjMPBZWu3h_rP7PmqWNjYa3ZQ';
+const supabaseUrl = "https://zkexbhhonuwrsmyrohis.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InprZXhiaGhvbnV3cnNteXJvaGlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5NDI2MTcsImV4cCI6MjA4MjUxODYxN30.Dfz5v95NaQH4whVqrC7Z2ViFr0G8iSAv4kTsfbLpgTg";
 
+// Bağlantıyı kuruyoruz
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 function App() {
@@ -68,7 +69,7 @@ function App() {
       <div className="header">
         <div className="avatar">🎓</div>
         <div>
-          <h2>Öğrenci İşleri Asistanı</h2>
+          <h2>Pembe fil</h2>
           <span className="status">● Çevrimiçi</span>
         </div>
       </div>
@@ -79,7 +80,7 @@ function App() {
           <div key={msg.id} className={`message-row ${msg.sender === 'user' ? 'my-message' : 'ai-message'}`}>
             <div className="message-bubble">
               {/* Markdown benzeri bold yazıları kalın yapalım */}
-              <p dangerouslySetInnerHTML={{ __html: msg.content.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br />') }}></p>
+              <p dangerouslySetInnerHTML={{ __html: (msg.content || "").replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br />') }}></p>
               <span className="time">
                 {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>

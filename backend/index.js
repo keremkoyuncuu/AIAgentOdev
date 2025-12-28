@@ -102,35 +102,65 @@ async function executeAction(analysis) {
     }
 
     // 3. Durum: Ödeme Yapma (API)
+       // 3. Durum: Ödeme Yapma (AKILLI VERSİYON 🧠)
     if (analysis.intent === "PAY_DEBT") {
         if (!analysis.studentNo || !analysis.amount) {
             return "Ödeme işlemi için **Öğrenci Numarası** ve **Miktar** belirtmelisiniz.";
         }
 
         try {
-            console.log(`💳 API'ye Ödeme İsteği (POST): ${API_URL}/api/v1/banking/payment`);
+            // ADIM 1: Önce öğrencinin borçlarını sorgula ki "Dönem" bilgisini öğrenelim.
+            console.log(`🔍 Dönem bilgisi için sorgu yapılıyor: ${analysis.studentNo}`);
             
-            // Veritabanı yerine senin BANKA API servisine istek atıyoruz
-            const response = await axios.post(`${API_URL}/api/v1/banking/payment`, {
-                studentNo: analysis.studentNo,
-                amount: Number(analysis.amount)
+            const inquiryResponse = await axios.get(`${API_URL}/api/v1/mobile/inquiry`, {
+                params: { studentNo: analysis.studentNo }
             });
 
-            return `✅ İşlem Başarılı! API üzerinden ödeme alındı.\n\n💰 **Ödenen:** ${analysis.amount} TL\nSisteme işlenmiştir.`;
+            // API'den gelen borç listesi (details)
+            const debts = inquiryResponse.data.details;
+
+            if (!debts || debts.length === 0) {
+                return "Bu öğrenciye ait hiç borç kaydı bulunamadı.";
+            }
+
+            // Borcu (balance) 0'dan büyük olan İLK kaydı bulalım
+            const activeDebt = debts.find(d => Number(d.balance) > 0);
+
+            if (!activeDebt) {
+                return "Şu anda ödenmesi gereken bir borcunuz bulunmuyor. Tüm borçlar ödenmiş. 🎉";
+            }
+
+            const dynamicTerm = activeDebt.term; // İşte sihirli kısım! Veritabanından gelen gerçek ismi aldık.
+            console.log(`✅ Hedef Dönem Bulundu: "${dynamicTerm}" (Tutar: ${activeDebt.balance} TL)`);
+
+
+            // ADIM 2: Bulduğumuz bu dönem bilgisiyle ödemeyi yap
+            console.log(`💳 API'ye Ödeme İsteği (POST): ${API_URL}/api/v1/banking/payment`);
+            
+            const response = await axios.post(`${API_URL}/api/v1/banking/payment`, {
+                studentNo: analysis.studentNo,
+                amount: Number(analysis.amount),
+                term: dynamicTerm // <--- ARTIK HARDCODED DEĞİL, DİNAMİK!
+            });
+
+            return `✅ İşlem Başarılı! **${dynamicTerm}** dönemi için ödeme alındı.\n\n💰 **Ödenen:** ${analysis.amount} TL\nSisteme işlenmiştir.`;
 
         } catch (error) {
-            console.error("❌ Ödeme API Hatası:", error.response ? error.response.data : error.message);
-            return "Ödeme işlemi başarısız. Bakiye yetersiz olabilir veya öğrenci bulunamadı.";
+            console.error("❌ İşlem Hatası:", error.response ? error.response.data : error.message);
+            
+            if (error.response && error.response.status === 404) {
+                 return "Öğrenci bulunamadı veya sistem hatası.";
+            }
+            return "Ödeme işlemi sırasında bir hata oluştu.";
         }
     }
-
-    return "Ne demek istediğinizi tam anlayamadım. 'Borcum ne?' veya '100 tl öde' diyebilirsiniz.";
 }
+
 
 // 🎧 ANA DÖNGÜ
 
 async function startListening() {
-    console.log("🟢 AI Agent dinlemeye başladı... (Mesaj bekleniyor)");
+    console.log("🚀 Backend Şu Adrese Bağlanıyor:", process.env.SUPABASE_URL || supabaseUrl);
 
     const channel = supabase
         .channel('ai-chat-room')
